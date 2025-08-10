@@ -4,34 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WB Orders</title>
+    <style>
+    .order-card {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 25px;
+        color: #333;
+    }
+    
+    h1 {
+        color: #2c3e50;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .section {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #eee;
+    }
+    
+    h2 {
+        color: #3498db;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .delivery, .payment, .details {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    
+    .items {
+        display: grid;
+        gap: 15px;
+    }
+    
+    .item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+    }
+    
+    .error {
+        background: #fff0f0;
+        color: #e74c3c;
+        padding: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+</style>
 </head>
 <body>
     <input type="text" id="uid" placeholder="Введите UID заказа для поиска (например, ORD-001)" size="50">
     <button onclick="searchOrder()">Найти заказ</button>
     <pre id="result"></pre>
-    <script>
-        function searchOrder(){
-            const uid = document.getElementById("uid").value.trim();
-            if (!uid) {
-                alert("Введите UID")
-                return
+<script>
+function searchOrder() {
+    const uid = document.getElementById("uid").value.trim();
+    if (!uid) {
+        alert("Введите UID");
+        return;
+    }
+    
+    const result = document.getElementById("result");
+    
+    fetch(`/order/${encodeURIComponent(uid)}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || `Ошибка ${response.status}`);
+                });
             }
-            const result = document.getElementById("result");
+            return response.json();
+        })
+        .then(renderOrder)
+        .catch(error => {
+            result.innerHTML = `
+                <div class="error">
+                    <svg>...</svg>
+                    ${error.message}
+                </div>
+            `;
+        });
+}
 
-            result.textContent = "";
-            fetch(`/order/${encodeURIComponent(uid)}`).then(response => {
-                if (!response.ok){
-                    throw new Error(`Произошла ошибка ${response.status}: ${response.statusText}`)
-                }
-                return response.json();
-            }).then(data => {
-                result.textContent = JSON.stringify(data, null, 2);
-            }).catch(error => {
-                result.textContent = "Ошибка: " + error.message;
-            })
-
-        }
-    </script>
+function renderOrder(order) {
+    const result = document.getElementById("result");
+    
+    result.innerHTML = `
+        <div class="order-card">
+            <h1>Заказ #${order.order_uid}</h1>
+            
+            <div class="section">
+                <h2>Доставка</h2>
+                <div class="delivery">
+                    <p><strong>${order.delivery.name}</strong> ${order.delivery.phone}</p>
+                    <p>${order.delivery.address}, ${order.delivery.city}, ${order.delivery.zip}</p>
+                    ${order.delivery.email ? `<p>${order.delivery.email}</p>` : ''}
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Оплата</h2>
+                <div class="payment">
+                    <p><strong>${order.payment.amount} ${order.payment.currency}</strong> через ${order.payment.provider}</p>
+                    <p>Доставка: ${order.payment.delivery_cost} | Товары: ${order.payment.goods_total}</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Товары (${order.items.length} шт.)</h2>
+                <div class="items">
+                    ${order.items.map(item => `
+                        <div class="item">
+                            <h3>${item.name} (${item.brand})</h3>
+                            <p>Размер: ${item.size} | Цена: ${item.price} × ${100 - item.sale}% = ${item.total_price}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2> Детали</h2>
+                <div class="details">
+                    <p><strong>Дата:</strong> ${new Date(order.date_created).toLocaleString()}</p>
+                    <p><strong>Локаль:</strong> ${order.locale} | <strong>Служба:</strong> ${order.delivery_service}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+</script>
 
 
 </body>
