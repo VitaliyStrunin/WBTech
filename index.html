@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WB Orders</title>
+</head>
+<body>
+    <input type="text" id="uid" placeholder="Введите UID заказа для поиска (например, ORD-001)" size="50">
+    <button onclick="searchOrder()">Найти заказ</button>
+    <pre id="result"></pre>
+    <script>
+        function searchOrder(){
+            const uid = document.getElementById("uid").value.trim();
+            if (!uid) {
+                alert("Введите UID")
+                return
+            }
+            const result = document.getElementById("result");
+
+            result.textContent = "";
+            fetch(`/order/${encodeURIComponent(uid)}`).then(response => {
+                if (!response.ok){
+                    throw new Error(`Произошла ошибка ${response.status}: ${response.statusText}`)
+                }
+                return response.json();
+            }).then(data => {
+                result.textContent = JSON.stringify(data, null, 2);
+            }).catch(error => {
+                result.textContent = "Ошибка: " + error.message;
+            })
+
+        }
+    </script>
+
+
+</body>
+</html>

@@ -25,13 +25,13 @@ func HandleOrderRequest(writer http.ResponseWriter, request *http.Request){
 	order, err := GetOrderFromDatabase(orderUID)
 
 	if order == nil{
-		http.Error(writer, "Заказ с указанным UID отсутствует", http.StatusBadRequest)
+		http.Error(writer, "Заказ с указанным UID отсутствует", http.StatusNotFound)
 		return
 	}
 
 	if err != nil{
 		log.Printf("Ошибка извлечения заказа %v: %v", orderUID, err)
-		http.Error(writer, "Заказ с указанным UID отсутствует", http.StatusBadRequest)
+		http.Error(writer, "Произошла ошибка извлечения заказа", http.StatusNotFound)
 		return
 	}
 	SendOrderJSON(writer, order)
