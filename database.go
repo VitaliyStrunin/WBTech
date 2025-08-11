@@ -197,3 +197,8 @@ func LoadCacheFromDatabase()(error){
 	log.Printf("Кэш успешно подгружен: загружено %d заказов", len(orders))
 	return nil
 }
+
+
+func SaveOrderToDatabase(order Order)(error){
+	return nil
+}
