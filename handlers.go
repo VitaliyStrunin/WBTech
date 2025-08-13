@@ -34,21 +34,13 @@ func HandleOrderRequest(writer http.ResponseWriter, request *http.Request){
 		http.Error(writer, "Произошла ошибка извлечения заказа", http.StatusNotFound)
 		return
 	}
+	
 	SendOrderJSON(writer, order)
 }
 
 func ExtractOrderUID(path string) string{
 	path_parts := strings.Split(path, "/")
 	return path_parts[len(path_parts) - 1]
-}
-
-func GetOrderFromCache(orderUID string) (*Order, bool){
-	if value, ok := ordersCache.orders.Load(orderUID); ok{
-		if order, ok := value.(*Order); ok{
-			return order, true
-		}
-	}
-	return nil, false
 }
 
 

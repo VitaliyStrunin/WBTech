@@ -5,20 +5,17 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 )
 
-type Cache struct{
-	orders sync.Map
-}
+
 
 var ordersCache Cache
 
 func main() {
 
 	InitDatabase()
-	err := LoadCacheFromDatabase()
+	err := LoadCache()
 
 	if err != nil{
 		log.Printf("Кэш не подгружен: %v", err)
@@ -32,8 +29,6 @@ func main() {
 		consumer.Consume("orders")
 
 	}()
-
-
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request){
 		http.ServeFile(writer, request, "index.html")

@@ -84,9 +84,7 @@ function searchOrder() {
     fetch(`/order/${encodeURIComponent(uid)}`)
         .then(response => {
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error || `Ошибка ${response.status}`);
-                });
+                throw new Error(`Произошла ошибка, статус: ${response.status}`);
             }
             return response.json();
         })

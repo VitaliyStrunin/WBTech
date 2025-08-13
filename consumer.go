@@ -31,6 +31,7 @@ func (consumer Consumer) Consume(topic_name string){
 	}
 	defer partitionConsumer.Close() 
 	log.Println("Консьюмер создан, запущен и ожидает сообщения из топика orders")
+	
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
@@ -41,9 +42,18 @@ func (consumer Consumer) Consume(topic_name string){
 				var order Order
 				err = json.Unmarshal(msg.Value, &order)
 				if err != nil{
-					log.Println("Не получилось распарсить инфу")
+					log.Printf("Не получилось распарсить информацию о заказе: %v", err)
+					continue
 				}
-				log.Println("Будем что-то делать с ", order)
+				
+				err := SaveOrderToDatabase(order)
+				if err != nil{
+					log.Printf("Не удалось сохранить заказ в базу данных: %v", err)
+					continue
+				}
+				SaveOrderToCache(order)
+
+				log.Printf("Заказ %v успешно сохранён!", order.OrderUID)
 
 			case <- signals:
 				log.Println("Тормозим консьюмер")
