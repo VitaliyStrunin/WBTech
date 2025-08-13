@@ -9,14 +9,13 @@ import (
 )
 
 
-
 var ordersCache Cache
 
 func main() {
 
 	InitDatabase()
 	err := LoadCache()
-
+	
 	if err != nil{
 		log.Printf("Кэш не подгружен: %v", err)
 	}

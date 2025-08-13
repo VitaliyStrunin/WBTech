@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -175,6 +174,7 @@ func SaveOrderToDatabase(order Order)(error){
 	INSERT INTO items(
 		chrt_id, track_number, price, rid, name, sale, size, total_price, nm_id, brand, status
 	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	ON CONFLICT (chrt_id) DO NOTHING;
 	`
 
 	orderItemInsertionQuery := `
@@ -184,6 +184,8 @@ func SaveOrderToDatabase(order Order)(error){
 	`
 
 	for _, item := range order.Items{
+
+
 		_, err = transaction.Exec(context.TODO(), itemInsertionQuery, item.ChrtID, item.TrackNumber, item.Price, item.RID, item.Name, item.Sale,
 									item.Size, item.TotalPrice, item.NMID, item.Brand, item.Status)
 		if err != nil{
